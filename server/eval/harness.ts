@@ -68,10 +68,14 @@ async function main() {
         plan: outcome.plan, costEstimate: String(outcome.plan.estimatedCostUsd),
       });
       await executeJob(jobId);
-      executed++;
       const job = (await db.select().from(s.researchJobs).where(eq(s.researchJobs.id, jobId)))[0];
       actual = job.status;
-      if (job.status === "completed") completed++;
+      if (job.status === "budget_blocked") {
+        // blocked by design before execution — not an execution failure
+      } else {
+        executed++;
+        if (job.status === "completed") completed++;
+      }
 
       if (c.name === "showcase") {
         const results = await db

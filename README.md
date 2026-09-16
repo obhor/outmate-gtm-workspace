@@ -12,8 +12,8 @@ Built for the Outmate.ai AI Engineer Intern technical assessment.
 
 | Surface | URL |
 |---|---|
-| Frontend (Vercel) | *(filled at deploy)* |
-| Backend/API (Render) | *(filled at deploy)* |
+| Frontend (Vercel) | https://web-eta-one-ac47ol11ab.vercel.app |
+| Backend/API (Render) | https://gtm-demo.onrender.com |
 | Health endpoint | `GET {backend}/api/health` |
 | Demo password | `gtm-demo-2026` |
 

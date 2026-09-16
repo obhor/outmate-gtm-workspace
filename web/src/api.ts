@@ -1,4 +1,5 @@
 const TOKEN_KEY = "gtm_demo_token";
+const BASE: string = (import.meta as unknown as { env?: { VITE_API_BASE?: string } }).env?.VITE_API_BASE ?? "";
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -38,36 +39,36 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  login: (password: string) => request<{ token: string }>("/api/auth/login", { method: "POST", body: JSON.stringify({ password }) }),
-  health: () => request<{ status: string; db: string; model: string; budgetUsd: number; time: string }>("/api/health"),
+  login: (password: string) => request<{ token: string }>(`${BASE}/api/auth/login`, { method: "POST", body: JSON.stringify({ password }) }),
+  health: () => request<{ status: string; db: string; model: string; budgetUsd: number; time: string }>(`${BASE}/api/health`),
   meta: () => request<{
     budgetUsd: number;
     costs: { enrichmentCell: Record<string, number>; modelSynthesisPerAccount: number };
     operations: Record<string, { description: string; costPerCell: number }>;
     freshnessThresholdDays: number;
-  }>("/api/meta"),
+  }>(`${BASE}/api/meta`),
   createResearch: (requestText: string, idemKey: string) =>
-    request<Job>("/api/research", {
+    request<Job>(`${BASE}/api/research`, {
       method: "POST",
       headers: { "Idempotency-Key": idemKey },
       body: JSON.stringify({ request: requestText }),
     }),
-  getJob: (id: string) => request<Job & { resultCount: number }>(`/api/research/${id}`),
-  recentJobs: () => request<(Job & { resultCount: number })[]>("/api/research"),
+  getJob: (id: string) => request<Job & { resultCount: number }>(`${BASE}/api/research/${id}`),
+  recentJobs: () => request<(Job & { resultCount: number })[]>(`${BASE}/api/research`),
   getResults: (id: string, params: Record<string, string | number>) =>
-    request<ResultsPage>(`/api/research/${id}/results?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}`),
-  getEvidence: (entityId: string) => request<EvidenceResponse>(`/api/entities/${entityId}/evidence`),
-  getScore: (entityId: string) => request<ScoreResponse>(`/api/entities/${entityId}/score`),
+    request<ResultsPage>(`${BASE}/api/research/${id}/results?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()}`),
+  getEvidence: (entityId: string) => request<EvidenceResponse>(`${BASE}/api/entities/${entityId}/evidence`),
+  getScore: (entityId: string) => request<ScoreResponse>(`${BASE}/api/entities/${entityId}/score`),
   createEnrichment: (operation: string, entityIds: string[]) =>
-    request<{ id: string; status: string; costEstimate: number; cells: number }>("/api/enrichments", {
+    request<{ id: string; status: string; costEstimate: number; cells: number }>(`${BASE}/api/enrichments`, {
       method: "POST", body: JSON.stringify({ operation, entityIds }),
     }),
-  runEnrichment: (id: string) => request<{ id: string; status: string }>(`/api/enrichments/${id}/run`, { method: "POST" }),
-  getEnrichment: (id: string) => request<EnrichmentJob>(`/api/enrichments/${id}`),
+  runEnrichment: (id: string) => request<{ id: string; status: string }>(`${BASE}/api/enrichments/${id}/run`, { method: "POST" }),
+  getEnrichment: (id: string) => request<EnrichmentJob>(`${BASE}/api/enrichments/${id}`),
   retryCell: (jobId: string, cellId: string) =>
-    request<{ cellId: string; status: string }>(`/api/enrichments/${jobId}/cells/${cellId}/retry`, { method: "POST" }),
+    request<{ cellId: string; status: string }>(`${BASE}/api/enrichments/${jobId}/cells/${cellId}/retry`, { method: "POST" }),
   exportCsv: async (researchId: string) => {
-    const res = await fetch(`/api/export/${researchId}.csv`, { headers: { Authorization: `Bearer ${getToken() ?? ""}` } });
+    const res = await fetch(`${BASE}/api/export/${researchId}.csv`, { headers: { Authorization: `Bearer ${getToken() ?? ""}` } });
     if (!res.ok) throw new ApiError(res.status, "export", `Export failed (${res.status})`);
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);

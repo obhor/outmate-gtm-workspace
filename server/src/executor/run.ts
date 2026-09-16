@@ -15,6 +15,7 @@ const uuid = () => crypto.randomUUID();
 export async function executeJob(jobId: string) {
   const job = (await db.select().from(s.researchJobs).where(eq(s.researchJobs.id, jobId)))[0];
   if (!job || !job.plan) return;
+  if (["completed", "failed", "budget_blocked", "clarification", "unsupported"].includes(job.status)) return;
   const plan = job.plan as ResearchPlan;
 
   const budget = checkBudget(Number(job.costEstimate ?? 0));
@@ -35,6 +36,9 @@ export async function executeJob(jobId: string) {
   for (const step of plan.steps) {
     const tool = registry[step.tool];
     if (!tool) { markStep(plan, step.id, "failed", `Unknown tool ${step.tool}`); continue; }
+    // normalize params so an LLM plan missing entity scoping still executes deterministically
+    if (step.tool === "evidence_fetch" && step.params.entityId === undefined) step.params.entityId = "EACH_RESULT";
+    if (step.tool === "person_discovery" && step.params.companyIds === undefined) step.params.companyIds = "EACH_RESULT";
     markStep(plan, step.id, "running");
     try {
       if (step.params.entityId === "EACH_RESULT" || step.params.companyIds === "EACH_RESULT") {

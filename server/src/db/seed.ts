@@ -183,6 +183,7 @@ export async function seedCorpus() {
   const TENANT = "tenant-demo";
   await db.delete(s.enrichmentCells);
   await db.delete(s.enrichmentJobs);
+  await db.delete(s.researchResults);
   await db.delete(s.scores);
   await db.delete(s.signals);
   await db.delete(s.evidence);

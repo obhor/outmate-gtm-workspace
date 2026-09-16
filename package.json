@@ -1,0 +1,17 @@
+{
+  "name": "outmate-gtm-workspace",
+  "private": true,
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w server",
+    "build": "npm run build -w web && npm run build -w server",
+    "start": "npm run start -w server",
+    "test": "npm run test -w server",
+    "eval": "npm run eval -w server",
+    "db:seed": "npm run db:seed -w server",
+    "db:migrate": "npm run db:migrate -w server"
+  }
+}

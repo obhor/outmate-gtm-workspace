@@ -1,0 +1,13 @@
+# confidential brief — never commit
+brief.txt
+*.pdf
+.pdf
+
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+web/dist/
+server/.drizzle/

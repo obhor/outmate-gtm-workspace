@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: gtm-demo
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DEMO_AUTH_TOKEN
+        value: gtm-demo-2026
+      - key: MODEL_API_KEY
+        sync: false
+      - key: MODEL_BASE_URL
+        value: https://api.deepseek.com/anthropic
+      - key: MODEL_NAME
+        value: deepseek-v4-flash

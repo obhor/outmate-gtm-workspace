@@ -15,8 +15,15 @@ const uuid = () => crypto.randomUUID();
 export async function executeJob(jobId: string) {
   const job = (await db.select().from(s.researchJobs).where(eq(s.researchJobs.id, jobId)))[0];
   if (!job || !job.plan) return;
-  if (["completed", "failed", "budget_blocked", "clarification", "unsupported"].includes(job.status)) return;
   const plan = job.plan as ResearchPlan;
+
+  // atomic claim: only one caller may move accepted/planning -> running
+  const claimed = await db
+    .update(s.researchJobs)
+    .set({ status: "running" })
+    .where(and(eq(s.researchJobs.id, jobId), inArray(s.researchJobs.status, ["accepted", "planning"])))
+    .returning({ id: s.researchJobs.id });
+  if (claimed.length === 0) return;
 
   const budget = checkBudget(Number(job.costEstimate ?? 0));
   if (!budget.ok) {
@@ -27,8 +34,6 @@ export async function executeJob(jobId: string) {
     }).where(eq(s.researchJobs.id, jobId));
     return;
   }
-
-  await db.update(s.researchJobs).set({ status: "running" }).where(eq(s.researchJobs.id, jobId));
 
   const resultEntities: string[] = [];
   const collectedEvidence = new Map<string, { entityType: string; entityId: string; field: string; value: string; sourceName: string; sourceUrl: string | null; retrievedAt: Date }[]>();

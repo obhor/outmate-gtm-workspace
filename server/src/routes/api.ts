@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import { z } from "zod";
 import { config } from "../config.js";
@@ -181,13 +181,13 @@ export function registerRoutes(app: FastifyInstance) {
 
     const entityIds = rows.map((r) => r.company.id);
     const sigRows = entityIds.length > 0
-      ? await db.select().from(s.signals).where(and(eq(s.signals.tenantId, TENANT), sql`${s.signals.entityId} = ANY(${entityIds})`))
+      ? await db.select().from(s.signals).where(and(eq(s.signals.tenantId, TENANT), inArray(s.signals.entityId, entityIds)))
       : [];
     const evRows = entityIds.length > 0
-      ? await db.select().from(s.evidence).where(and(eq(s.evidence.tenantId, TENANT), sql`${s.evidence.entityId} = ANY(${entityIds})`))
+      ? await db.select().from(s.evidence).where(and(eq(s.evidence.tenantId, TENANT), inArray(s.evidence.entityId, entityIds)))
       : [];
     const peopleRows = entityIds.length > 0
-      ? await db.select().from(s.people).where(and(eq(s.people.tenantId, TENANT), sql`${s.people.companyId} = ANY(${entityIds})`))
+      ? await db.select().from(s.people).where(and(eq(s.people.tenantId, TENANT), inArray(s.people.companyId, entityIds)))
       : [];
     const topPerson = new Map<string, (typeof peopleRows)[number]>();
     for (const p of peopleRows) {

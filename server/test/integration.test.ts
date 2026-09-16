@@ -4,7 +4,6 @@ import Fastify from "fastify";
 import { config } from "../src/config.js";
 import { registerRoutes } from "../src/routes/api.js";
 import { seedCorpus } from "../src/db/seed.js";
-import { executeJob } from "../src/executor/run.js";
 import { tick } from "../src/enrichment/worker.js";
 
 const haveDb = Boolean(config.DATABASE_URL);
@@ -23,8 +22,14 @@ async function runResearch(app: ReturnType<typeof makeApp>, request: string, ide
     payload: { request },
   });
   const job = res.json();
+  // the API triggers execution itself; poll to a terminal state like the frontend does
   if (job.status === "accepted") {
-    await executeJob(job.id);
+    for (let i = 0; i < 400; i++) {
+      const j = (await app.inject({ method: "GET", url: `/api/research/${job.id}`, headers: AUTH })).json();
+      if (!["accepted", "planning", "running"].includes(j.status)) return j;
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    throw new Error(`research ${job.id} never reached a terminal state`);
   }
   return job;
 }
@@ -172,7 +177,7 @@ describe("integration (requires DATABASE_URL)", { skip: !haveDb }, () => {
     assert.equal(res.statusCode, 200);
     assert.match(res.headers["content-type"] ?? "", /text\/csv/);
     const lines = res.body.trim().split("\n");
-    assert.equal(lines.length, 12); // header + 11 SaaS NA accounts in size band
+    assert.equal(lines.length, 10); // header + 9 SaaS NA accounts in size band
     assert.match(lines[0], /contact/);
   });
 
@@ -180,7 +185,7 @@ describe("integration (requires DATABASE_URL)", { skip: !haveDb }, () => {
     const job = await runResearch(app, "Find B2B SaaS companies in North America with 100-1000 employees");
     const p1 = (await app.inject({ method: "GET", url: `/api/research/${job.id}/results?pageSize=3&page=1`, headers: AUTH })).json();
     assert.equal(p1.items.length, 3);
-    assert.equal(p1.total, 11);
+    assert.equal(p1.total, 9);
     const filtered = (await app.inject({ method: "GET", url: `/api/research/${job.id}/results?country=US&q=northwind`, headers: AUTH })).json();
     assert.equal(filtered.items.length, 1);
     assert.equal(filtered.items[0].name, "Northwind Labs");

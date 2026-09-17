@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { and, eq } from "drizzle-orm";
 import { config } from "../config.js";
 import { db } from "../db/client.js";
+import { firstText } from "../llm.js";
 import * as s from "../db/schema.js";
 
 export type EnrichmentOp = {
@@ -60,7 +61,8 @@ export const ops: Record<string, EnrichmentOp> = {
               "Summarize this account in 2-3 sentences for a sales team. Use ONLY the facts provided. Do not add any claim, number, or URL not present in the facts. If facts conflict, say they conflict.",
             messages: [{ role: "user", content: facts }],
           });
-          const text = (msg.content[0] as { text: string }).text.trim();
+          const text = firstText(msg.content);
+          if (!text) throw new Error("no text in model response");
           if (text.length > 700) throw new Error("summary too long");
           return { value: text };
         } catch {

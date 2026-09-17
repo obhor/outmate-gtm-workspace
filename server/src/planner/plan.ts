@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { config } from "../config.js";
+import { firstText } from "../llm.js";
 import { COSTS } from "../budget.js";
 import { rulesPlan } from "./plan_rules.js";
 import { ResearchPlanSchema, type PlanningOutcome, type ResearchPlan } from "./types.js";
@@ -43,7 +44,7 @@ async function llmPlan(text: string): Promise<PlanningOutcome | null> {
           system: SYSTEM,
           messages: [{ role: "user", content: `${text}${lastError ? `\nYour previous output was invalid: ${lastError}` : ""}` }],
         });
-        const raw = (msg.content[0] as { text: string }).text;
+        const raw = firstText(msg.content);
         const parsed = extractJson(raw);
         if ((parsed as { clarification?: boolean }).clarification) {
           return rulesPlan(text); // delegate question wording to deterministic rules

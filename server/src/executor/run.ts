@@ -8,6 +8,7 @@ import type { PlanStep, ResearchPlan } from "../planner/types.js";
 import { icpFit } from "../scoring/icp.js";
 import { ops } from "../enrichment/ops.js";
 import { COSTS, checkBudget } from "../budget.js";
+import { firstText } from "../llm.js";
 
 const TENANT = "tenant-demo";
 const uuid = () => crypto.randomUUID();
@@ -178,8 +179,8 @@ async function synthesizeInsight(
           `Never invent numbers, names, or sources. If a factor value is 0, say what is missing. Mention staleness/conflicts when present.`,
         messages: [{ role: "user", content: `Account: ${name}\nFactors: ${factorText}\nSignals: ${sigText}\nFacts: ${facts}` }],
       });
-      const text = (msg.content[0] as { text: string }).text.trim();
-      if (text.length <= 400) return text;
+      const text = firstText(msg.content);
+      if (text && text.length <= 400) return text;
     } catch { /* fall through to template */ }
   }
   const misses = factors.filter((f) => f.value === 0).map((f) => f.factor);

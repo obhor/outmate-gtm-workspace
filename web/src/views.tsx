@@ -540,6 +540,12 @@ function EnrichmentPanel({ jobId, rows, selected, meta, onClose, onCreated, onEr
                 </button>
               </div>
             ))}
+            {job.cells.filter((c) => c.status === "completed" && c.value).map((c) => (
+              <div key={c.id} className="cell-value">
+                <span className="mono">{c.entityId}</span>
+                <div className="cell-value-text">{c.value}</div>
+              </div>
+            ))}
             {job.errors.length > 0 && job.cells.filter((c) => c.status === "failed").length === 0 && (
               <div className="muted small">Retry re-runs only the failed cell — completed cells are never re-executed.</div>
             )}

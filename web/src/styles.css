@@ -146,6 +146,11 @@ h4 { font-size: 13px; margin: 22px 0 8px; text-transform: uppercase; letter-spac
   display: flex; gap: 8px; align-items: center; font-size: 12px; padding: 6px 0;
   border-bottom: 1px solid var(--line); flex-wrap: wrap;
 }
+.cell-value {
+  font-size: 12px; padding: 10px 0; border-bottom: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cell-value-text { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
 
 .login-wrap { display: flex; justify-content: center; padding-top: 12vh; }
 .login { width: 340px; display: flex; flex-direction: column; gap: 12px; }

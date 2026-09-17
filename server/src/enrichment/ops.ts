@@ -57,6 +57,7 @@ export const ops: Record<string, EnrichmentOp> = {
           const msg = await client.messages.create({
             model: config.MODEL_NAME,
             max_tokens: 300,
+            thinking: { type: "disabled" },
             system:
               "Summarize this account in 2-3 sentences for a sales team. Use ONLY the facts provided. Do not add any claim, number, or URL not present in the facts. If facts conflict, say they conflict.",
             messages: [{ role: "user", content: facts }],

@@ -41,6 +41,7 @@ async function llmPlan(text: string): Promise<PlanningOutcome | null> {
         const msg = await client.messages.create({
           model: config.MODEL_NAME,
           max_tokens: 800,
+          thinking: { type: "disabled" },
           system: SYSTEM,
           messages: [{ role: "user", content: `${text}${lastError ? `\nYour previous output was invalid: ${lastError}` : ""}` }],
         });

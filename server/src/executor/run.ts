@@ -174,6 +174,7 @@ async function synthesizeInsight(
       const msg = await client.messages.create({
         model: config.MODEL_NAME,
         max_tokens: 200,
+        thinking: { type: "disabled" },
         system:
           `You write one-sentence account insights for a GTM workspace. Use ONLY the facts and factor values given. ` +
           `Never invent numbers, names, or sources. If a factor value is 0, say what is missing. Mention staleness/conflicts when present.`,
